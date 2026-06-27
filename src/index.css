@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #181c1c;
+  background: #f7faf8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100dvh;
+  font-family: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: #0f766e;
+  color: #a3faef;
+}
+
+.glass-panel {
+  border: 1px solid rgb(255 255 255 / 0.2);
+  background: rgb(255 255 255 / 0.75);
+  box-shadow: 0 4px 20px rgb(23 32 38 / 0.08);
+  backdrop-filter: blur(18px);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}

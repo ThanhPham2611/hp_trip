@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -46,49 +45,74 @@ const signInLocally = () => {
 
 describe("GamesPage", () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     localStorage.clear();
     signInLocally();
     vi.spyOn(Math, "random").mockReturnValue(0);
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
-  it("draws a personal mission with two redraws remaining", async () => {
+  it("reveals a personal mission after a one second mystery state", async () => {
     renderWithProviders(<GamesPage />);
 
-    await userEvent.click(screen.getByRole("button", { name: /^Rut the$/i }));
+    expect(screen.getByRole("tab", { name: /Nhiệm vụ của tôi/i })).toHaveAttribute("aria-selected", "true");
 
-    expect(await screen.findByText(/Con 2 luot doi/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Doi nhiem vu/i })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: /^Rút thẻ$/i }));
+
+    expect(screen.getByText(/Đang hé lộ nhiệm vụ/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Còn 2 lượt đổi/i)).not.toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(screen.getByText(/Còn 2 lượt đổi/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Đổi nhiệm vụ/i })).toBeEnabled();
   });
 
   it("uses both redraws and then locks the mission", async () => {
     renderWithProviders(<GamesPage />);
 
-    await userEvent.click(screen.getByRole("button", { name: /^Rut the$/i }));
-    await screen.findByText(/Con 2 luot doi/i);
+    fireEvent.click(screen.getByRole("button", { name: /^Rút thẻ$/i }));
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    screen.getByText(/Còn 2 lượt đổi/i);
 
-    await userEvent.click(screen.getByRole("button", { name: /Doi nhiem vu/i }));
-    expect(await screen.findByText(/Con 1 luot doi/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Đổi nhiệm vụ/i }));
+    expect(screen.getByText(/Đang hé lộ nhiệm vụ/i)).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.getByText(/Còn 1 lượt đổi/i)).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: /Doi nhiem vu/i }));
-    expect(await screen.findByText(/Nhiem vu da khoa/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Het luot doi/i })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: /Đổi nhiệm vụ/i }));
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.getByText(/Nhiệm vụ đã khóa/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Hết lượt đổi/i })).toBeDisabled();
   });
 
-  it("lets shared games run repeatedly", async () => {
+  it("keeps shared card and wheel games in separate Vietnamese tabs", async () => {
     renderWithProviders(<GamesPage />);
 
-    const spinButton = screen.getByRole("button", { name: /Quay ngay/i });
-    await userEvent.click(spinButton);
-    await userEvent.click(spinButton);
-    expect(screen.getByText(/Ket qua vong quay/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: /Rút thẻ chung/i }));
+    const groupCardButton = screen.getByRole("button", { name: /Mở thẻ chung/i });
+    fireEvent.click(groupCardButton);
+    fireEvent.click(groupCardButton);
+    expect(screen.getByText(/Thử thách chung/i)).toBeInTheDocument();
 
-    const groupCardButton = screen.getByRole("button", { name: /Rut the chung/i });
-    await userEvent.click(groupCardButton);
-    await userEvent.click(groupCardButton);
-    expect(screen.getByText(/Thu thach chung/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: /Vòng quay/i }));
+    const spinButton = screen.getByRole("button", { name: /Quay ngay/i });
+    fireEvent.click(spinButton);
+    fireEvent.click(spinButton);
+    expect(screen.getByText(/Kết quả vòng quay/i)).toBeInTheDocument();
+
+    expect(screen.queryByText(/SPIN/i)).not.toBeInTheDocument();
   });
 });

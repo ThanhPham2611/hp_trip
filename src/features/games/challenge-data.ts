@@ -19,63 +19,63 @@ export const MAX_REDRAWS = 2;
 export const personalMissions: PersonalMission[] = [
   {
     id: "story-catcher",
-    title: "Nguoi bat chuyen",
-    description: "Moi mot nguoi tren xe ke mot ky niem di choi dang nho, roi ghi lai cau noi hay nhat.",
-    category: "Ket noi",
+    title: "Người bắt chuyện",
+    description: "Mời một người trong nhóm kể một kỷ niệm đi chơi đáng nhớ, rồi ghi lại câu nói hay nhất.",
+    category: "Kết nối",
     tone: "teal"
   },
   {
     id: "food-scout",
-    title: "Tham tu mon ngon",
-    description: "Tim mon an la nhat trong ngay va thuyet phuc ca nhom thu it nhat mot mieng.",
-    category: "An uong",
+    title: "Thám tử món ngon",
+    description: "Tìm món ăn lạ nhất trong ngày và thuyết phục cả nhóm thử ít nhất một miếng.",
+    category: "Ăn uống",
     tone: "coral"
   },
   {
     id: "photo-spark",
-    title: "Tho san khoanh khac",
-    description: "Chup 3 khoanh khac hau truong vui nhat va gui vao album chung truoc khi het ngay.",
+    title: "Thợ săn khoảnh khắc",
+    description: "Chụp 3 khoảnh khắc hậu trường vui nhất và gửi vào album chung trước khi hết ngày.",
     category: "Album",
     tone: "sunflower"
   },
   {
     id: "hype-leader",
-    title: "Nguoi khuay dong",
-    description: "Bat dau mot mini game hoac mot man dem nguoc chup anh nhom trong luc cho do an.",
-    category: "Nang luong",
+    title: "Người khuấy động",
+    description: "Bắt đầu một mini game hoặc một màn đếm ngược chụp ảnh nhóm trong lúc chờ đồ ăn.",
+    category: "Năng lượng",
     tone: "harbor"
   },
   {
     id: "kind-navigator",
-    title: "Dai su tinh te",
-    description: "Am tham giup mot nguoi trong nhom viec nho: lay nuoc, giu do, nhac lich, hoac goi mon.",
-    category: "Cham soc",
+    title: "Đại sứ tinh tế",
+    description: "Âm thầm giúp một người trong nhóm việc nhỏ: lấy nước, giữ đồ, nhắc lịch, hoặc gọi món.",
+    category: "Chăm sóc",
     tone: "teal"
   },
   {
     id: "quote-keeper",
-    title: "Nguoi giu cau noi",
-    description: "San mot cau noi bat hu cua chuyen di va dat ten cho no nhu ten mot bo phim.",
-    category: "Vui ve",
+    title: "Người giữ câu nói",
+    description: "Săn một câu nói bất hủ của chuyến đi và đặt tên cho nó như tên một bộ phim.",
+    category: "Vui vẻ",
     tone: "coral"
   }
 ];
 
 export const wheelPrompts = [
-  "Nguoi vua uong nuoc gan nhat ke mot su that bat ngo.",
-  "Ca ban chon mon tiep theo trong 10 giay.",
-  "Nguoi mac mau sang nhat duoc chi dinh mot nguoi hat 1 cau.",
-  "Moi nguoi noi mot loi khen cho nguoi ben trai.",
-  "Nguoi thua o keo bua bao tiep theo phai chup anh check-in ban an.",
-  "Ca nhom cung nang ly va noi mot cau khau hieu cua chuyen di."
+  "Người vừa uống nước gần nhất kể một sự thật bất ngờ.",
+  "Cả bàn chọn món tiếp theo trong 10 giây.",
+  "Người mặc màu sáng nhất được chỉ định một người hát 1 câu.",
+  "Mỗi người nói một lời khen cho người bên trái.",
+  "Người thua ở kéo búa bao tiếp theo phải chụp ảnh check-in bàn ăn.",
+  "Cả nhóm cùng nâng ly và nói một câu khẩu hiệu của chuyến đi."
 ];
 
 export const groupCardPrompts = [
-  "Ca ban cung chon mot biet danh cho chuyen di Hai Phong.",
-  "Moi nguoi ke ten mot mon muon thu truoc khi ve.",
-  "Chup anh ban an theo phong cach nghiem tuc trong 3 giay.",
-  "Binh chon nguoi goi mon co tam nhat hom nay.",
-  "Ca nhom tao mot cau chuc ngan cho ngay tiep theo."
+  "Cả bàn cùng chọn một biệt danh cho chuyến đi Hải Phòng.",
+  "Mỗi người kể tên một món muốn thử trước khi về.",
+  "Chụp ảnh bàn ăn theo phong cách nghiêm túc trong 3 giây.",
+  "Bình chọn người gọi món có tâm nhất hôm nay.",
+  "Cả nhóm tạo một câu chúc ngắn cho ngày tiếp theo."
 ];
 
 export function missionStorageKey(userId: string) {

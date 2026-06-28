@@ -31,10 +31,13 @@ Rules:
 - Each redraw replaces the mission and decreases the remaining redraw count.
 - Once redraws reach 0, the mission is locked.
 - Reloading the app preserves the current mission and remaining redraw count for that user on that device.
+- The personal mission experience lives in its own tab, "Nhiệm vụ của tôi".
+- After the user draws or redraws, the card shows a mystery reveal state for 1 second before displaying the mission content.
+- All user-facing copy and placeholder deck content should be natural Vietnamese with accents.
 
 ## Shared Eating-Time Games
 
-Below the personal mission area, the page includes shared games for meal time:
+The page includes shared games for meal time in separate tabs:
 
 - Random wheel: spins through playful prompts and lands on one result.
 - Shared card draw: opens a group challenge card.
@@ -44,6 +47,7 @@ Rules:
 - Shared games can be played repeatedly.
 - Shared games do not consume personal redraws.
 - Results can change every round.
+- The random wheel must live in a separate tab from the personal mission and shared card draw.
 
 ## UI Structure
 
@@ -54,19 +58,21 @@ The Games page uses these sections:
    - Supporting text about drawing a personal mission.
    - Room/trip badge.
 
-2. Personal mission card
+2. Tab controls
+   - "Nhiệm vụ của tôi"
+   - "Rút thẻ chung"
+   - "Vòng quay"
+
+3. Personal mission card
    - Pre-draw state: back of card and "Rut the" button.
-   - Drawing state: animated lift/tilt/flip.
+   - Drawing state: animated lift/tilt/flip plus 1-second mystery copy.
    - Result state: mission title, mission text, category badge, remaining redraws, redraw button.
 
-3. Shared play area
-   - Two controls/tabs: "Vong quay" and "Rut the chung".
-   - Wheel panel with spin button and result.
+4. Shared card tab
    - Group card panel with draw button and result.
 
-4. Small mission list/history teaser
-   - Shows a few possible challenge categories or selected game prompts.
-   - Avoids bringing back the old quiz/poll dashboard.
+5. Wheel tab
+   - Wheel panel with spin button and result.
 
 ## Data Model
 

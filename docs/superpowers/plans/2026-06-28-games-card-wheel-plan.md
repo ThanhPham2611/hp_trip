@@ -10,6 +10,16 @@
 
 ---
 
+## Revision: Tabbed Vietnamese Experience
+
+User feedback after the first implementation changed the page structure:
+
+- Personal missions live in a separate "Nhiệm vụ của tôi" tab.
+- Drawing or redrawing a personal mission shows a 1-second mystery reveal state before the mission appears.
+- The random wheel lives in its own "Vòng quay" tab.
+- Shared card draw lives in its own "Rút thẻ chung" tab.
+- All labels and placeholder data are Vietnamese with accents.
+
 ## File Structure
 
 - Create `src/features/games/challenge-data.ts`

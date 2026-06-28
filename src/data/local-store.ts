@@ -96,3 +96,49 @@ export function voteLocalPoll(userId: string, pollId: string, optionId: string) 
   if (option) option.votes += 1;
   return localPoll;
 }
+
+const localMissionsMap = new Map<string, { missionId: string; remainingRedraws: number; locked: boolean; updatedAt: string }>();
+
+const missionIds = ["story-catcher", "food-scout", "photo-spark", "hype-leader", "kind-navigator", "quote-keeper"];
+
+export function getLocalMission(userId: string) {
+  return localMissionsMap.get(userId) ?? null;
+}
+
+export function drawLocalMission(userId: string) {
+  const existing = localMissionsMap.get(userId);
+  if (existing) return existing;
+  const randomId = missionIds[Math.floor(Math.random() * missionIds.length)];
+  const newState = {
+    missionId: randomId,
+    remainingRedraws: 2,
+    locked: false,
+    updatedAt: new Date().toISOString()
+  };
+  localMissionsMap.set(userId, newState);
+  return newState;
+}
+
+export function redrawLocalMission(userId: string) {
+  const existing = localMissionsMap.get(userId);
+  if (!existing || existing.locked || existing.remainingRedraws <= 0) {
+    throw new Error("Không thể đổi nhiệm vụ");
+  }
+  const otherIds = missionIds.filter((id) => id !== existing.missionId);
+  const randomId = otherIds[Math.floor(Math.random() * otherIds.length)];
+  existing.missionId = randomId;
+  existing.remainingRedraws -= 1;
+  existing.updatedAt = new Date().toISOString();
+  return existing;
+}
+
+export function confirmLocalMission(userId: string) {
+  const existing = localMissionsMap.get(userId);
+  if (!existing || existing.locked) {
+    throw new Error("Không thể khóa nhiệm vụ");
+  }
+  existing.locked = true;
+  existing.updatedAt = new Date().toISOString();
+  return existing;
+}
+

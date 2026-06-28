@@ -29,5 +29,14 @@ create table if not exists upload_events (
   created_at timestamptz not null default now()
 );
 
+create table if not exists user_missions (
+  user_id text primary key references app_users(id),
+  mission_id text not null,
+  remaining_redraws integer not null default 2 check (remaining_redraws between 0 and 2),
+  locked boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists photos_created_at_idx on photos (created_at desc);
 create index if not exists upload_events_user_created_idx on upload_events (user_id, created_at desc);
+create index if not exists user_missions_updated_idx on user_missions (updated_at desc);

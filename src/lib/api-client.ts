@@ -3,26 +3,37 @@ import {
   addLocalExpense,
   addLocalItineraryItem,
   addLocalPhoto,
+  confirmLocalMission,
+  drawLocalMission,
+  getLocalMission,
   localExpenses,
   localItinerary,
   localPhotos,
   localPoll,
   localSeats,
   randomLocalSeat,
+  redrawLocalMission,
   updateLocalSeat,
   voteLocalPoll
 } from "../data/local-store";
-import type { AppUser, DashboardData, Expense, ExpensesData, GameRoom, GuideItem, ItineraryItem, Photo, Poll, Seat } from "../types";
+import type {
+  AppUser,
+  DashboardData,
+  Expense,
+  ExpensesData,
+  GamesResponse,
+  GuideItem,
+  ItineraryItem,
+  PersonalMissionState,
+  Photo,
+  Poll,
+  Seat
+} from "../types";
 import type { ExpenseInput, ItineraryInput, PhotoMetadataInput } from "./schemas";
 import { verifyBrowserPassword } from "./browser-password";
 import { countdownDays } from "./trip-utils";
 
 const LOCAL_USER_KEY = "hp_trip_user";
-
-type GamesResponse = {
-  rooms: GameRoom[];
-  poll: Poll;
-};
 
 type CloudinaryUploadResponse = {
   public_id: string;
@@ -239,8 +250,35 @@ export const api = {
       return await request<GamesResponse>("/api/games");
     } catch (error) {
       if (!shouldUseLocalFallback(error)) throw error;
-      requireLocalUser();
-      return { rooms: seedGameRooms, poll: localPoll };
+      const user = requireLocalUser();
+      return { rooms: seedGameRooms, poll: localPoll, personalMission: getLocalMission(user.id) };
+    }
+  },
+  async drawMission(): Promise<PersonalMissionState> {
+    try {
+      return await request<PersonalMissionState>("/api/games/mission/draw", { method: "POST" });
+    } catch (error) {
+      if (!shouldUseLocalFallback(error)) throw error;
+      const user = requireLocalUser();
+      return drawLocalMission(user.id);
+    }
+  },
+  async redrawMission(): Promise<PersonalMissionState> {
+    try {
+      return await request<PersonalMissionState>("/api/games/mission/redraw", { method: "POST" });
+    } catch (error) {
+      if (!shouldUseLocalFallback(error)) throw error;
+      const user = requireLocalUser();
+      return redrawLocalMission(user.id);
+    }
+  },
+  async confirmMission(): Promise<PersonalMissionState> {
+    try {
+      return await request<PersonalMissionState>("/api/games/mission/confirm", { method: "POST" });
+    } catch (error) {
+      if (!shouldUseLocalFallback(error)) throw error;
+      const user = requireLocalUser();
+      return confirmLocalMission(user.id);
     }
   },
   async votePoll(pollId: string, optionId: string) {

@@ -11,7 +11,12 @@ import {
   seedUsers
 } from "../../src/data/seed";
 import { countdownDays } from "../../src/lib/trip-utils";
-import type { AppUser, DashboardData, Expense, ItineraryItem, Photo, Seat } from "../../src/types";
+import {
+  MAX_REDRAWS,
+  personalMissions,
+  pickRandomIndex
+} from "../../src/features/games/challenge-data";
+import type { AppUser, DashboardData, Expense, GamesResponse, ItineraryItem, PersonalMissionState, Photo, Seat } from "../../src/types";
 
 type UploadEventStatus = "signature_issued" | "metadata_saved" | "rate_limited" | "rejected";
 
@@ -51,6 +56,7 @@ const mutableExpenses: Expense[] = [
 ];
 const pollVotes = new Map<string, string>();
 const localUploadEvents: UploadEvent[] = [];
+const localPersonalMissions = new Map<string, PersonalMissionState>();
 
 function isSupabaseConfigured() {
   return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -89,6 +95,15 @@ function mapPhotoRow(data: Record<string, unknown>): Photo {
     uploadedBy: String(data.uploaded_by),
     uploadedByName: String(data.uploaded_by_name),
     createdAt: String(data.created_at)
+  };
+}
+
+function mapMissionRow(data: Record<string, unknown>): PersonalMissionState {
+  return {
+    missionId: String(data.mission_id),
+    remainingRedraws: Number(data.remaining_redraws),
+    locked: Boolean(data.locked),
+    updatedAt: String(data.updated_at)
   };
 }
 
@@ -292,10 +307,84 @@ export function repositoryMode() {
   return isSupabaseConfigured() ? "supabase" : "local";
 }
 
-export async function getGames() {
+function createMissionState(currentMissionId?: string, remainingRedraws = MAX_REDRAWS, locked = false): PersonalMissionState {
+  const currentIndex = currentMissionId ? personalMissions.findIndex((mission) => mission.id === currentMissionId) : undefined;
+  const missionIndex = pickRandomIndex(personalMissions.length, currentIndex === -1 ? undefined : currentIndex);
+  return {
+    missionId: personalMissions[missionIndex].id,
+    remainingRedraws,
+    locked,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+async function saveSupabaseMission(userId: string, state: PersonalMissionState) {
+  const client = supabase();
+  if (!client) return null;
+  const row = {
+    user_id: userId,
+    mission_id: state.missionId,
+    remaining_redraws: state.remainingRedraws,
+    locked: state.locked,
+    updated_at: state.updatedAt
+  };
+  const { data, error } = await client.from("user_missions").upsert(row, { onConflict: "user_id" }).select("*").single();
+  if (error) throw new Error("Khong luu duoc nhiem vu");
+  return mapMissionRow(data);
+}
+
+export async function getPersonalMission(userId: string): Promise<PersonalMissionState | null> {
+  const client = supabase();
+  if (client) {
+    const { data, error } = await client.from("user_missions").select("*").eq("user_id", userId).single();
+    if (error) {
+      if (isNotFoundError(error)) return null;
+      throw new Error("Khong tai duoc nhiem vu");
+    }
+    return data ? mapMissionRow(data) : null;
+  }
+  return localPersonalMissions.get(userId) ?? null;
+}
+
+export async function drawPersonalMission(userId: string): Promise<PersonalMissionState> {
+  const existing = await getPersonalMission(userId);
+  if (existing) return existing;
+
+  const state = createMissionState();
+  const saved = await saveSupabaseMission(userId, state);
+  if (saved) return saved;
+  localPersonalMissions.set(userId, state);
+  return state;
+}
+
+export async function redrawPersonalMission(userId: string): Promise<PersonalMissionState> {
+  const existing = await getPersonalMission(userId);
+  if (!existing) throw new Error("Chua rut nhiem vu");
+  if (existing.locked) throw new Error("Nhiem vu da khoa");
+  if (existing.remainingRedraws <= 0) throw new Error("Da het luot doi");
+
+  const state = createMissionState(existing.missionId, existing.remainingRedraws - 1);
+  const saved = await saveSupabaseMission(userId, state);
+  if (saved) return saved;
+  localPersonalMissions.set(userId, state);
+  return state;
+}
+
+export async function confirmPersonalMission(userId: string): Promise<PersonalMissionState> {
+  const existing = await getPersonalMission(userId);
+  if (!existing) throw new Error("Chua rut nhiem vu");
+  const state = { ...existing, locked: true, updatedAt: new Date().toISOString() };
+  const saved = await saveSupabaseMission(userId, state);
+  if (saved) return saved;
+  localPersonalMissions.set(userId, state);
+  return state;
+}
+
+export async function getGames(userId?: string): Promise<GamesResponse> {
   return {
     rooms: seedGameRooms,
-    poll: seedPoll
+    poll: seedPoll,
+    personalMission: userId ? await getPersonalMission(userId) : null
   };
 }
 

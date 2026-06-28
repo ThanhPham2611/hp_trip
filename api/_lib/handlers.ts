@@ -9,6 +9,8 @@ import {
   addExpense,
   addItineraryItem,
   addPhoto,
+  confirmPersonalMission,
+  drawPersonalMission,
   findUserByUsername,
   getDashboard,
   getExpenses,
@@ -20,6 +22,7 @@ import {
   getUploadCounts,
   randomSeat,
   recordUploadEvent,
+  redrawPersonalMission,
   selectSeat,
   votePoll
 } from "./repository";
@@ -169,8 +172,38 @@ export async function photosHandler(req: VercelRequest, res: VercelResponse) {
 
 export async function gamesHandler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res);
-  if (!requireSession(req, res)) return;
-  return res.status(200).json(await getGames());
+  const session = requireSession(req, res);
+  if (!session) return;
+  return res.status(200).json(await getGames(session.userId));
+}
+
+export async function missionDrawHandler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "POST") return methodNotAllowed(res);
+  const session = requireSession(req, res);
+  if (!session) return;
+  return res.status(200).json(await drawPersonalMission(session.userId));
+}
+
+export async function missionRedrawHandler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "POST") return methodNotAllowed(res);
+  const session = requireSession(req, res);
+  if (!session) return;
+  try {
+    return res.status(200).json(await redrawPersonalMission(session.userId));
+  } catch (error) {
+    return res.status(409).json({ message: error instanceof Error ? error.message : "Khong the doi nhiem vu" });
+  }
+}
+
+export async function missionConfirmHandler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "POST") return methodNotAllowed(res);
+  const session = requireSession(req, res);
+  if (!session) return;
+  try {
+    return res.status(200).json(await confirmPersonalMission(session.userId));
+  } catch (error) {
+    return res.status(409).json({ message: error instanceof Error ? error.message : "Khong the khoa nhiem vu" });
+  }
 }
 
 export async function pollVoteHandler(req: VercelRequest, res: VercelResponse) {

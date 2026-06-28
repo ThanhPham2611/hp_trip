@@ -3,6 +3,49 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const apiMocks = vi.hoisted(() => {
+  type MissionState = {
+    missionId: string;
+    remainingRedraws: number;
+    locked: boolean;
+    updatedAt: string;
+  };
+
+  let mission: MissionState | null = null;
+  const now = "2026-06-28T00:00:00.000Z";
+  const api = {
+    games: vi.fn(async () => ({
+      rooms: [],
+      poll: { id: "poll-food", question: "Poll", options: [] },
+      personalMission: mission
+    })),
+    drawMission: vi.fn(async () => {
+      mission = { missionId: "story-catcher", remainingRedraws: 2, locked: false, updatedAt: now };
+      return mission;
+    }),
+    redrawMission: vi.fn(async () => {
+      mission = { missionId: "food-scout", remainingRedraws: Math.max((mission?.remainingRedraws ?? 2) - 1, 0), locked: false, updatedAt: now };
+      return mission;
+    }),
+    confirmMission: vi.fn(async () => {
+      mission = { ...(mission ?? { missionId: "story-catcher", remainingRedraws: 2, updatedAt: now }), locked: true };
+      return mission;
+    }),
+    reset: () => {
+      mission = null;
+      api.games.mockClear();
+      api.drawMission.mockClear();
+      api.redrawMission.mockClear();
+      api.confirmMission.mockClear();
+    }
+  };
+
+  return api;
+});
+
+vi.mock("../src/lib/api-client", () => ({ api: apiMocks }));
+
 import { GamesPage } from "../src/pages/games";
 
 vi.mock("framer-motion", async () => {
@@ -13,7 +56,7 @@ vi.mock("framer-motion", async () => {
       {},
       {
         get: (_target, element: string) =>
-          React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(({ children, ...props }, ref) =>
+          React.forwardRef<HTMLElement, any>(({ children, animate, initial, exit, transition, whileHover, whileTap, ...props }, ref) =>
             React.createElement(element, { ...props, ref }, children)
           )
       }
@@ -30,11 +73,13 @@ const renderWithProviders = (ui: ReactElement) => {
   );
 };
 
+let userCounter = 0;
+
 const signInLocally = () => {
   localStorage.setItem(
     "hp_trip_user",
     JSON.stringify({
-      id: "user-linh",
+      id: `user-linh-${++userCounter}`,
       username: "linh",
       displayName: "Linh Nguyen",
       avatarUrl: "https://i.pravatar.cc/120?img=47",
@@ -46,6 +91,7 @@ const signInLocally = () => {
 describe("GamesPage", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    apiMocks.reset();
     localStorage.clear();
     signInLocally();
     vi.spyOn(Math, "random").mockReturnValue(0);
@@ -62,40 +108,45 @@ describe("GamesPage", () => {
     expect(screen.getByRole("tab", { name: /Nhiệm vụ của tôi/i })).toHaveAttribute("aria-selected", "true");
 
     fireEvent.click(screen.getByRole("button", { name: /^Rút thẻ$/i }));
+    await act(async () => {});
 
+    expect(screen.getByRole("dialog", { name: /Đang rút nhiệm vụ/i })).toBeInTheDocument();
     expect(screen.getByText(/Đang hé lộ nhiệm vụ/i)).toBeInTheDocument();
     expect(screen.queryByText(/Còn 2 lượt đổi/i)).not.toBeInTheDocument();
 
-    act(() => {
-      vi.advanceTimersByTime(1000);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
     });
 
+    expect(screen.queryByRole("dialog", { name: /Đang rút nhiệm vụ/i })).not.toBeInTheDocument();
     expect(screen.getByText(/Còn 2 lượt đổi/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Đổi nhiệm vụ/i })).toBeEnabled();
   });
 
-  it("uses both redraws and then locks the mission", async () => {
+  it("locks the mission after confirming the challenge", async () => {
     renderWithProviders(<GamesPage />);
 
     fireEvent.click(screen.getByRole("button", { name: /^Rút thẻ$/i }));
-    act(() => {
-      vi.advanceTimersByTime(1000);
+    await act(async () => {});
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
     });
     screen.getByText(/Còn 2 lượt đổi/i);
 
     fireEvent.click(screen.getByRole("button", { name: /Đổi nhiệm vụ/i }));
     expect(screen.getByText(/Đang hé lộ nhiệm vụ/i)).toBeInTheDocument();
-    act(() => {
-      vi.advanceTimersByTime(1000);
+    await act(async () => {});
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
     });
     expect(screen.getByText(/Còn 1 lượt đổi/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /Đổi nhiệm vụ/i }));
-    act(() => {
-      vi.advanceTimersByTime(1000);
-    });
+    fireEvent.click(screen.getByRole("button", { name: /Xác nhận thử thách/i }));
+    await act(async () => {});
+
     expect(screen.getByText(/Nhiệm vụ đã khóa/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Hết lượt đổi/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Đã xác nhận thử thách/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Thử thách đã khóa/i })).toBeDisabled();
   });
 
   it("keeps shared card and wheel games in separate Vietnamese tabs", async () => {

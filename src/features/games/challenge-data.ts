@@ -8,12 +8,6 @@ export type PersonalMission = {
   tone: MissionTone;
 };
 
-export type StoredMissionState = {
-  missionId: string;
-  remainingRedraws: number;
-  updatedAt: string;
-};
-
 export const MAX_REDRAWS = 2;
 
 export const personalMissions: PersonalMission[] = [
@@ -78,10 +72,6 @@ export const groupCardPrompts = [
   "Cả nhóm tạo một câu chúc ngắn cho ngày tiếp theo."
 ];
 
-export function missionStorageKey(userId: string) {
-  return `hp_trip_personal_mission:${userId}`;
-}
-
 export function pickRandomIndex(length: number, excludeIndex?: number) {
   if (length <= 1) return 0;
   let next = Math.floor(Math.random() * length);
@@ -93,24 +83,4 @@ export function pickRandomIndex(length: number, excludeIndex?: number) {
 
 export function getMissionById(missionId: string) {
   return personalMissions.find((mission) => mission.id === missionId) ?? personalMissions[0];
-}
-
-export function loadMissionState(userId: string): StoredMissionState | null {
-  try {
-    const raw = localStorage.getItem(missionStorageKey(userId));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as StoredMissionState;
-    if (!parsed.missionId || typeof parsed.remainingRedraws !== "number") return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-export function saveMissionState(userId: string, state: StoredMissionState) {
-  try {
-    localStorage.setItem(missionStorageKey(userId), JSON.stringify(state));
-  } catch {
-    return;
-  }
 }

@@ -79,6 +79,19 @@ export type Poll = {
   options: Array<{ id: string; label: string; votes: number }>;
 };
 
+export type PersonalMissionState = {
+  missionId: string;
+  remainingRedraws: number;
+  locked: boolean;
+  updatedAt: string;
+};
+
+export type GamesResponse = {
+  rooms: GameRoom[];
+  poll: Poll;
+  personalMission: PersonalMissionState | null;
+};
+
 export type Expense = {
   id: string;
   title: string;

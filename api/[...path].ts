@@ -9,6 +9,9 @@ import {
   loginHandler,
   logoutHandler,
   meHandler,
+  missionConfirmHandler,
+  missionDrawHandler,
+  missionRedrawHandler,
   photosHandler,
   pollVoteHandler,
   seatRandomHandler,
@@ -49,6 +52,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return photosHandler(req, res);
     case "/api/games":
       return gamesHandler(req, res);
+    case "/api/games/mission/draw":
+      return missionDrawHandler(req, res);
+    case "/api/games/mission/redraw":
+      return missionRedrawHandler(req, res);
+    case "/api/games/mission/confirm":
+      return missionConfirmHandler(req, res);
     case "/api/polls/vote":
       return pollVoteHandler(req, res);
     case "/api/expenses":

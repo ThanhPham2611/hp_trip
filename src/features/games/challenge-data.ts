@@ -85,8 +85,8 @@ export function missionStorageKey(userId: string) {
 export function pickRandomIndex(length: number, excludeIndex?: number) {
   if (length <= 1) return 0;
   let next = Math.floor(Math.random() * length);
-  if (excludeIndex !== undefined) {
-    while (next === excludeIndex) next = Math.floor(Math.random() * length);
+  if (excludeIndex !== undefined && next === excludeIndex) {
+    next = (next + 1) % length;
   }
   return next;
 }

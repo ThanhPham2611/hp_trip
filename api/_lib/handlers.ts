@@ -4,6 +4,7 @@ import { loginSchema, photoMetadataSchema, pollVoteSchema } from "../../src/lib/
 import { verifyPassword } from "../../src/lib/password";
 import { createSessionToken } from "../../src/lib/session";
 import { isCloudinarySecureUrl } from "../../src/lib/upload";
+import { featureLockStatusBody, rejectIfFeatureLocked } from "./feature-gate";
 import { clearSessionCookie, methodNotAllowed, publicUser, requireSession, setSessionCookie } from "./http";
 import {
   addExpense,
@@ -94,9 +95,15 @@ export async function itineraryHandler(req: VercelRequest, res: VercelResponse) 
   return res.status(201).json(item);
 }
 
+export function featureLockHandler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "GET") return methodNotAllowed(res);
+  return res.status(200).json(featureLockStatusBody());
+}
+
 export async function seatsHandler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res);
   if (!requireSession(req, res)) return;
+  if (rejectIfFeatureLocked(res)) return;
   return res.status(200).json(await getSeats());
 }
 
@@ -104,6 +111,7 @@ export async function seatSelectHandler(req: VercelRequest, res: VercelResponse)
   if (req.method !== "POST") return methodNotAllowed(res);
   const session = requireSession(req, res);
   if (!session) return;
+  if (rejectIfFeatureLocked(res)) return;
   try {
     return res.status(200).json(await selectSeat(session.userId, String(req.body?.code ?? "")));
   } catch (error) {
@@ -115,6 +123,7 @@ export async function seatRandomHandler(req: VercelRequest, res: VercelResponse)
   if (req.method !== "POST") return methodNotAllowed(res);
   const session = requireSession(req, res);
   if (!session) return;
+  if (rejectIfFeatureLocked(res)) return;
   try {
     return res.status(200).json(await randomSeat(session.userId));
   } catch (error) {
@@ -125,6 +134,7 @@ export async function seatRandomHandler(req: VercelRequest, res: VercelResponse)
 export async function photosHandler(req: VercelRequest, res: VercelResponse) {
   const session = requireSession(req, res);
   if (!session) return;
+  if (rejectIfFeatureLocked(res)) return;
 
   if (req.method === "GET") return res.status(200).json(await getPhotos());
   if (req.method !== "POST") return methodNotAllowed(res);
@@ -174,6 +184,7 @@ export async function gamesHandler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res);
   const session = requireSession(req, res);
   if (!session) return;
+  if (rejectIfFeatureLocked(res)) return;
   return res.status(200).json(await getGames(session.userId));
 }
 
@@ -181,6 +192,7 @@ export async function missionDrawHandler(req: VercelRequest, res: VercelResponse
   if (req.method !== "POST") return methodNotAllowed(res);
   const session = requireSession(req, res);
   if (!session) return;
+  if (rejectIfFeatureLocked(res)) return;
   return res.status(200).json(await drawPersonalMission(session.userId));
 }
 
@@ -188,6 +200,7 @@ export async function missionRedrawHandler(req: VercelRequest, res: VercelRespon
   if (req.method !== "POST") return methodNotAllowed(res);
   const session = requireSession(req, res);
   if (!session) return;
+  if (rejectIfFeatureLocked(res)) return;
   try {
     return res.status(200).json(await redrawPersonalMission(session.userId));
   } catch (error) {
@@ -199,6 +212,7 @@ export async function missionConfirmHandler(req: VercelRequest, res: VercelRespo
   if (req.method !== "POST") return methodNotAllowed(res);
   const session = requireSession(req, res);
   if (!session) return;
+  if (rejectIfFeatureLocked(res)) return;
   try {
     return res.status(200).json(await confirmPersonalMission(session.userId));
   } catch (error) {
@@ -210,6 +224,7 @@ export async function pollVoteHandler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res);
   const session = requireSession(req, res);
   if (!session) return;
+  if (rejectIfFeatureLocked(res)) return;
   const parsed = pollVoteSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ message: "Bình chọn chưa hợp lệ" });
   try {
@@ -221,6 +236,7 @@ export async function pollVoteHandler(req: VercelRequest, res: VercelResponse) {
 
 export async function expensesHandler(req: VercelRequest, res: VercelResponse) {
   if (!requireSession(req, res)) return;
+  if (rejectIfFeatureLocked(res)) return;
 
   if (req.method === "GET") return res.status(200).json(await getExpenses());
   if (req.method !== "POST") return methodNotAllowed(res);
@@ -237,6 +253,7 @@ export async function cloudinarySignatureHandler(req: VercelRequest, res: Vercel
   if (req.method !== "POST") return methodNotAllowed(res);
   const session = requireSession(req, res);
   if (!session) return;
+  if (rejectIfFeatureLocked(res)) return;
 
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;

@@ -56,9 +56,18 @@ vi.mock("framer-motion", async () => {
       {},
       {
         get: (_target, element: string) =>
-          React.forwardRef<HTMLElement, any>(({ children, animate, initial, exit, transition, whileHover, whileTap, ...props }, ref) =>
-            React.createElement(element, { ...props, ref }, children)
-          )
+          React.forwardRef<HTMLElement, any>((props, ref) => {
+            const domProps = { ...props };
+            const children = domProps.children;
+            delete domProps.children;
+            delete domProps.animate;
+            delete domProps.initial;
+            delete domProps.exit;
+            delete domProps.transition;
+            delete domProps.whileHover;
+            delete domProps.whileTap;
+            return React.createElement(element, { ...domProps, ref }, children);
+          })
       }
     )
   };

@@ -31,6 +31,7 @@ import type {
 } from "../types";
 import type { ExpenseInput, ItineraryInput, PhotoMetadataInput } from "./schemas";
 import { verifyBrowserPassword } from "./browser-password";
+import type { FeatureLockState } from "./feature-lock";
 import { countdownDays } from "./trip-utils";
 
 const LOCAL_USER_KEY = "hp_trip_user";
@@ -94,6 +95,9 @@ function requireLocalUser() {
 }
 
 export const api = {
+  async featureLock(): Promise<FeatureLockState> {
+    return request<FeatureLockState>("/api/feature-lock");
+  },
   async login(username: string, password: string) {
     try {
       const result = await request<{ user: Omit<AppUser, "passwordHash"> }>("/api/login", {

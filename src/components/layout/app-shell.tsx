@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../lib/api-client";
 import { Button } from "../ui/button";
+import { FeatureLockGate } from "./feature-lock-gate";
 
 const navItems = [
   { to: "/", label: "Trang chủ", icon: Home },
@@ -69,7 +70,9 @@ export function AppShell() {
         </div>
       </header>
       <main className="mx-auto max-w-[1280px] px-4 lg:px-16">
-        <Outlet />
+        <FeatureLockGate>
+          <Outlet />
+        </FeatureLockGate>
       </main>
       <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-7 rounded-t-[18px] bg-white/95 px-2 py-3 shadow-[0_-4px_12px_rgba(23,32,38,0.05)] backdrop-blur lg:hidden">
         {navItems.map((item) => (

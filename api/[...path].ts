@@ -3,6 +3,7 @@ import {
   cloudinarySignatureHandler,
   dashboardHandler,
   expensesHandler,
+  featureLockHandler,
   gamesHandler,
   guideHandler,
   itineraryHandler,
@@ -42,6 +43,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return guideHandler(req, res);
     case "/api/itinerary":
       return itineraryHandler(req, res);
+    case "/api/feature-lock":
+      return featureLockHandler(req, res);
     case "/api/seats":
       return seatsHandler(req, res);
     case "/api/seats/select":

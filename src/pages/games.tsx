@@ -587,7 +587,7 @@ export function GamesPage() {
                   </>
                 )} */}
                 <Button className="min-h-12 rounded-xl text-sm bg-[#4a0412] hover:bg-[#3a020d] text-amber-200 font-bold border border-amber-500/30" onClick={handleCardClick}>
-                  <Maximize2 size={16} className="text-amber-400" /> Rút nhiệm vụ
+                  <Maximize2 size={16} className="text-amber-400" /> Rút thẻ
                 </Button>
               </div>
             </div>

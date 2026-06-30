@@ -60,8 +60,13 @@ export function GamesPage() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [wheelIndex, setWheelIndex] = useState<number | null>(null);
+  const [wheelDisplayIndex, setWheelDisplayIndex] = useState<number | null>(null);
   const [wheelRotation, setWheelRotation] = useState(0);
+  const [wheelModalOpen, setWheelModalOpen] = useState(false);
+  const [wheelSpinning, setWheelSpinning] = useState(false);
+  const [groupCardDrawn, setGroupCardDrawn] = useState<number | null>(null);
   const [groupCardIndex, setGroupCardIndex] = useState<number | null>(null);
+  const [groupCardDrawing, setGroupCardDrawing] = useState(false);
   const games = useQuery({ queryKey: ["games"], queryFn: api.games, retry: false });
 
   const mission = missionState ? getMissionById(missionState.missionId) : null;
@@ -111,13 +116,26 @@ export function GamesPage() {
   };
 
   const spinWheel = () => {
+    if (wheelSpinning) return;
     const next = pickRandomIndex(wheelPrompts.length, wheelIndex ?? undefined);
     setWheelIndex(next);
     setWheelRotation((rotation) => rotation + 1080 + next * (360 / wheelPrompts.length));
+    setWheelSpinning(true);
+    setTimeout(() => {
+      setWheelSpinning(false);
+      setWheelModalOpen(true);
+    }, 1600);
   };
 
   const drawGroupCard = () => {
-    setGroupCardIndex((current) => pickRandomIndex(groupCardPrompts.length, current ?? undefined));
+    if (groupCardDrawing) return;
+    setGroupCardDrawing(true);
+    setTimeout(() => {
+      const next = pickRandomIndex(groupCardPrompts.length, groupCardDrawn ?? undefined);
+      setGroupCardIndex(next);
+      setGroupCardDrawn(next);
+      setGroupCardDrawing(false);
+    }, 1000);
   };
 
   const missionCardMotion = isRevealing
@@ -583,34 +601,103 @@ export function GamesPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
-            className="rounded-[20px] border border-border/70 bg-white p-5 shadow-soft lg:p-8"
+            className="grid gap-6 rounded-[20px] border border-border/70 bg-white p-5 shadow-soft lg:grid-cols-[0.85fr_1fr] lg:p-8"
           >
-            <div className="grid gap-6 lg:grid-cols-[0.8fr_1fr] lg:items-center">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-teal">Chơi cùng nhau</p>
-                <h2 className="mt-2 font-display text-3xl font-black leading-tight">Rút thẻ chung</h2>
-                <p className="mt-3 max-w-xl text-sm leading-6 text-mist">
-                  Dành cho cả bàn hoặc cả nhóm khi đang ăn uống. Có thể mở nhiều lượt, mỗi lượt là một thử thách vui mới.
-                </p>
+            {/* Left: Info */}
+            <div className="space-y-4">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-teal">Chơi cùng nhau</p>
+              <h2 className="font-display text-3xl font-black leading-tight">Rút thẻ chung</h2>
+              <p className="max-w-xl text-sm leading-6 text-mist">
+                Dành cho cả bàn hoặc cả nhóm khi đang ăn uống. Có thể mở nhiều lượt, mỗi lượt là một thử thách vui mới.
+              </p>
+              <div className="rounded-[16px] bg-teal-fixed/40 border border-teal/20 p-4 text-sm font-semibold leading-6 text-teal flex items-center gap-3">
+                <Sparkles className="text-teal shrink-0" size={22} />
+                <span>Bấm vào lá bài hoặc nút bên dưới để mở thẻ thử thách!</span>
+              </div>
+            </div>
+
+            {/* Right: Card */}
+            <div className="mx-auto w-full max-w-[360px]">
+              <div style={{ perspective: 1200 }}>
+                <motion.div
+                  onClick={groupCardDrawing ? undefined : drawGroupCard}
+                  whileHover={groupCardDrawing ? {} : { scale: 1.03, rotateY: 5 }}
+                  whileTap={groupCardDrawing ? {} : { scale: 0.97 }}
+                  className="relative aspect-[2/3] rounded-[22px] bg-[#f8faf7] p-2 text-ink shadow-2xl will-change-transform cursor-pointer group"
+                >
+                  {/* Hover overlay */}
+                  {!groupCardDrawing && (
+                    <div className="absolute inset-0 rounded-[22px] bg-teal/5 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center pointer-events-none">
+                      <span className="bg-teal text-white px-4 py-2 rounded-full font-black text-xs shadow-lg flex items-center gap-2 transform -translate-y-2 group-hover:translate-y-0 transition-transform">
+                        <Sparkles size={14} /> Mở thẻ
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex h-full flex-col justify-between rounded-[18px] border border-teal/15 bg-[radial-gradient(circle_at_top,#e8faf6,transparent_36%),linear-gradient(145deg,#ffffff,#edf5f2)] p-6">
+                    <div className="flex items-center justify-between">
+                      <span className="rounded-full bg-teal/10 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-teal">
+                        Thử thách chung
+                      </span>
+                      <BadgeCheck className="text-teal" size={22} />
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                      {groupCardDrawing ? (
+                        <motion.div
+                          key="drawing"
+                          initial={{ opacity: 0, scale: 0.94 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.96 }}
+                          className="text-center"
+                        >
+                          <Sparkles className="mx-auto text-teal" size={46} />
+                          <h3 className="mt-4 font-display text-3xl font-black leading-tight">Đang mở thẻ...</h3>
+                          <p className="mt-3 text-sm font-semibold text-mist">Thử thách nào sẽ đến đây?</p>
+                        </motion.div>
+                      ) : groupCardIndex !== null ? (
+                        <motion.div
+                          key={groupCardIndex}
+                          initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -12, scale: 0.96 }}
+                          className="space-y-3"
+                        >
+                          <span className="inline-flex rounded-full bg-teal/10 px-3 py-1 text-xs font-black text-teal">
+                            Nhiệm vụ nhóm
+                          </span>
+                          <h3 className="font-display text-2xl font-black leading-tight">{groupCardPrompts[groupCardIndex]}</h3>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="back"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="text-center"
+                        >
+                          <Sparkles className="mx-auto text-teal" size={46} />
+                          <h3 className="mt-4 font-display text-3xl font-black">Lá bài chung</h3>
+                          <p className="mt-2 text-sm font-semibold text-mist">Cả nhóm cùng mở thẻ và hoàn thành thử thách.</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="rounded-[14px] bg-teal/10 p-3 text-center text-sm font-black text-teal">
+                      {groupCardDrawing ? "Đang rút..." : groupCardIndex !== null ? `Thẻ #${groupCardIndex + 1} / ${groupCardPrompts.length}` : "Chưa mở thẻ"}
+                    </div>
+                  </div>
+                </motion.div>
               </div>
 
-              <div>
-                <motion.div
-                  key={groupCardIndex ?? "empty"}
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-[18px] border border-teal/20 bg-teal-fixed/40 p-5"
+              <div className="mt-5 grid gap-3">
+                <Button
+                  className="min-h-12 rounded-xl text-sm"
+                  onClick={drawGroupCard}
+                  disabled={groupCardDrawing}
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="text-xs font-black uppercase tracking-[0.12em] text-teal">Thử thách chung</p>
-                    <BadgeCheck className="text-teal" size={22} />
-                  </div>
-                  <p className="mt-4 font-display text-2xl font-black leading-tight">
-                    {groupCardIndex === null ? "Mở thẻ để bắt đầu một lượt mới." : groupCardPrompts[groupCardIndex]}
-                  </p>
-                </motion.div>
-                <Button className="mt-5 w-full" variant="secondary" onClick={drawGroupCard}>
-                  <Sparkles size={18} /> Mở thẻ chung
+                  <Sparkles size={16} className={groupCardDrawing ? "animate-spin" : ""} />
+                  {groupCardDrawing ? "Đang mở thẻ..." : groupCardIndex !== null ? "Mở thẻ mới" : "Mở thẻ chung"}
                 </Button>
               </div>
             </div>
@@ -654,11 +741,11 @@ export function GamesPage() {
                   Trải nghiệm thử thách bất ngờ đầy thú vị cho cả nhóm! Bấm quay để khám phá nhiệm vụ tiếp theo trên bàn ăn Hải Phòng.
                 </p>
 
-                {/* Result Card for Spotlight */}
+                {/* Result Card — only shows text AFTER modal has been dismissed */}
                 <div className="pt-2">
                   <AnimatePresence mode="wait">
                     <motion.div
-                      key={wheelIndex === null ? "empty" : wheelIndex}
+                      key={wheelDisplayIndex === null ? "empty" : wheelDisplayIndex}
                       initial={{ opacity: 0, y: 12, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -12 }}
@@ -670,7 +757,7 @@ export function GamesPage() {
                         <span className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-1.5">
                           <Compass size={14} /> Kết quả vòng quay
                         </span>
-                        {wheelIndex !== null && (
+                        {wheelDisplayIndex !== null && (
                           <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-500/30">
                             Thử thách active
                           </span>
@@ -678,7 +765,7 @@ export function GamesPage() {
                       </div>
                       
                       <p className="font-display text-lg sm:text-xl font-black text-amber-50 leading-snug">
-                        {wheelIndex === null ? "Sẵn sàng! Bấm nút bên dưới để quay ngẫu nhiên." : wheelPrompts[wheelIndex]}
+                        {wheelDisplayIndex === null ? "Sẵn sàng! Bấm nút bên dưới để quay ngẫu nhiên." : wheelPrompts[wheelDisplayIndex]}
                       </p>
                     </motion.div>
                   </AnimatePresence>
@@ -753,12 +840,13 @@ export function GamesPage() {
                     <button
                       type="button"
                       onClick={spinWheel}
-                      className="absolute z-20 size-20 rounded-full bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 p-1 shadow-2xl active:scale-95 transition hover:brightness-110 flex items-center justify-center group"
+                      disabled={wheelSpinning}
+                      className="absolute z-20 size-20 rounded-full bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 p-1 shadow-2xl active:scale-95 transition hover:brightness-110 flex items-center justify-center group disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <div className="w-full h-full rounded-full bg-[#3a020d] border-2 border-amber-300/60 flex flex-col items-center justify-center text-center shadow-inner group-hover:bg-[#4a0412] transition">
-                        <Sparkles size={16} className="text-amber-400 group-hover:rotate-45 transition" />
+                        <Sparkles size={16} className={`text-amber-400 transition ${wheelSpinning ? "animate-spin" : "group-hover:rotate-45"}`} />
                         <span className="text-[11px] font-black text-amber-200 uppercase tracking-wider mt-0.5">
-                          QUAY
+                          {wheelSpinning ? "..." : "QUAY"}
                         </span>
                       </div>
                     </button>
@@ -768,13 +856,127 @@ export function GamesPage() {
                 {/* Main Action Button */}
                 <Button
                   onClick={spinWheel}
-                  className="h-14 px-8 w-full max-w-xs bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-amber-950 font-black text-base rounded-xl shadow-lg shadow-amber-500/25 active:scale-95 transition flex items-center justify-center gap-2.5 border border-amber-300/50"
+                  disabled={wheelSpinning}
+                  className="h-14 px-8 w-full max-w-xs bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-amber-950 font-black text-base rounded-xl shadow-lg shadow-amber-500/25 active:scale-95 transition flex items-center justify-center gap-2.5 border border-amber-300/50 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <RotateCcw size={20} /> Quay ngay
+                  <RotateCcw size={20} className={wheelSpinning ? "animate-spin" : ""} />
+                  {wheelSpinning ? "Đang quay..." : "Quay ngay"}
                 </Button>
               </div>
             </div>
           </motion.section>
+        )}
+      </AnimatePresence>
+
+      {/* ── Wheel Result Modal ── */}
+      <AnimatePresence>
+        {wheelModalOpen && wheelIndex !== null && (
+          <motion.div
+            key="wheel-modal-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backdropFilter: "blur(12px)", backgroundColor: "rgba(10,2,4,0.75)" }}
+            onClick={() => { setWheelDisplayIndex(wheelIndex); setWheelModalOpen(false); }}
+          >
+            <motion.div
+              key="wheel-modal-card"
+              initial={{ opacity: 0, scale: 0.7, y: 48 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.85, y: 24 }}
+              transition={{ type: "spring", stiffness: 280, damping: 22 }}
+              className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-amber-500/40"
+              style={{
+                background: "linear-gradient(135deg, #1a0106 0%, #2b020a 50%, #1a0106 100%)"
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Ambient glow bg */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-40 bg-amber-500/20 rounded-full blur-[60px]" />
+                <div className="absolute bottom-0 right-0 w-48 h-48 bg-rose-600/20 rounded-full blur-[50px]" />
+                <div
+                  className="absolute inset-0 opacity-10"
+                  style={{
+                    backgroundImage: "radial-gradient(#bc9656 1px, transparent 1px)",
+                    backgroundSize: "24px 24px"
+                  }}
+                />
+              </div>
+
+              {/* Top accent bar */}
+              <div className="h-1.5 w-full bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600" />
+
+              <div className="relative z-10 p-8 flex flex-col items-center text-center gap-6">
+                {/* Icon badge */}
+                <motion.div
+                  initial={{ scale: 0, rotate: -30 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.15 }}
+                  className="w-20 h-20 rounded-full bg-gradient-to-b from-amber-400 to-amber-600 flex items-center justify-center shadow-[0_0_32px_rgba(245,158,11,0.5)] border-4 border-amber-300/40"
+                >
+                  <Sparkles size={36} className="text-amber-950" />
+                </motion.div>
+
+                {/* Label */}
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="space-y-1"
+                >
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400 flex items-center justify-center gap-1.5">
+                    <Compass size={12} /> Thử thách bàn ăn
+                  </p>
+                  <div className="w-12 h-0.5 bg-amber-500/40 rounded-full mx-auto" />
+                </motion.div>
+
+                {/* Result text */}
+                <motion.p
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.28, type: "spring", stiffness: 200, damping: 16 }}
+                  className="font-display text-2xl sm:text-3xl font-black text-amber-50 leading-tight"
+                >
+                  {wheelPrompts[wheelIndex]}
+                </motion.p>
+
+                {/* Slot indicator */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.38 }}
+                  className="flex items-center gap-2 text-xs font-bold text-amber-400/70 bg-amber-500/10 px-4 py-1.5 rounded-full border border-amber-500/20"
+                >
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  Ô {wheelIndex + 1} / {wheelPrompts.length}
+                </motion.div>
+
+                {/* Action buttons */}
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.44 }}
+                  className="flex flex-col sm:flex-row gap-3 w-full"
+                >
+                  <Button
+                    onClick={() => { setWheelDisplayIndex(wheelIndex); setWheelModalOpen(false); spinWheel(); }}
+                    className="flex-1 h-12 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-amber-950 font-black text-sm rounded-xl shadow-lg shadow-amber-500/25 active:scale-95 transition flex items-center justify-center gap-2 border border-amber-300/50"
+                  >
+                    <RotateCcw size={16} /> Quay lại
+                  </Button>
+                  <Button
+                    onClick={() => { setWheelDisplayIndex(wheelIndex); setWheelModalOpen(false); }}
+                    className="flex-1 h-12 bg-white/10 hover:bg-white/15 text-amber-100 font-bold text-sm rounded-xl border border-white/20 active:scale-95 transition flex items-center justify-center gap-2"
+                  >
+                    <X size={16} /> Đóng
+                  </Button>
+                </motion.div>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

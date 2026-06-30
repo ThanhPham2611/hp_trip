@@ -69,8 +69,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 function shouldUseLocalFallback(error: unknown) {
-  return !isApiError(error);
+  // Chỉ fallback sang local khi API không khả dụng (network error, không phải lỗi API)
+  // Nếu API trả về lỗi có status (4xx, 5xx), không fallback
+  if (isApiError(error)) return false;
+  // Nếu là lỗi network/fetch → API không chạy → dùng local fallback
+  return true;
 }
+
 
 function safeUser(user: AppUser) {
   const { passwordHash: _passwordHash, ...safe } = user;

@@ -18,7 +18,7 @@ import {
   seatRandomHandler,
   seatsHandler,
   seatSelectHandler
-} from "./_lib/handlers";
+} from "./_lib/handlers.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const rawPath = Array.isArray(req.query.path)

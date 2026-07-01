@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_UPLOAD_BYTES } from "./upload";
+import { MAX_UPLOAD_BYTES } from "./upload.js";
 
 export const loginSchema = z.object({
   username: z.string().trim().min(1, "Nhap ten dang nhap"),

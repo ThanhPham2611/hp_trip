@@ -1,5 +1,5 @@
 import type { VercelResponse } from "@vercel/node";
-import { FEATURE_LOCKED_MESSAGE, FEATURE_UNLOCK_AT_ISO, getFeatureLockState, type FeatureLockState } from "../../src/lib/feature-lock";
+import { FEATURE_LOCKED_MESSAGE, FEATURE_UNLOCK_AT_ISO, getFeatureLockState, type FeatureLockState } from "../../src/lib/feature-lock.js";
 
 export function createLockedFeatureResponse(state: FeatureLockState = getFeatureLockState()) {
   return {

@@ -8,7 +8,7 @@ import type {
   Poll,
   Seat,
   Trip
-} from "../types";
+} from "../types.js";
 
 export const seedTrip: Trip = {
   id: "trip-hai-phong-2026",

@@ -9,14 +9,14 @@ import {
   seedSeats,
   seedTrip,
   seedUsers
-} from "../../src/data/seed";
-import { countdownDays } from "../../src/lib/trip-utils";
+} from "../../src/data/seed.js";
+import { countdownDays } from "../../src/lib/trip-utils.js";
 import {
   MAX_REDRAWS,
   personalMissions,
   pickRandomIndex
-} from "../../src/features/games/challenge-data";
-import type { AppUser, DashboardData, Expense, GamesResponse, ItineraryItem, PersonalMissionState, Photo, Seat } from "../../src/types";
+} from "../../src/features/games/challenge-data.js";
+import type { AppUser, DashboardData, Expense, GamesResponse, ItineraryItem, PersonalMissionState, Photo, Seat } from "../../src/types.js";
 
 type UploadEventStatus = "signature_issued" | "metadata_saved" | "rate_limited" | "rejected";
 

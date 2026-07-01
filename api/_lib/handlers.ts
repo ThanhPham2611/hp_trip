@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHash } from "node:crypto";
-import { loginSchema, photoMetadataSchema, pollVoteSchema } from "../../src/lib/schemas";
-import { verifyPassword } from "../../src/lib/password";
-import { createSessionToken } from "../../src/lib/session";
-import { isCloudinarySecureUrl } from "../../src/lib/upload";
-import { featureLockStatusBody, rejectIfFeatureLocked } from "./feature-gate";
-import { clearSessionCookie, methodNotAllowed, publicUser, requireSession, setSessionCookie } from "./http";
+import { loginSchema, photoMetadataSchema, pollVoteSchema } from "../../src/lib/schemas.js";
+import { verifyPassword } from "../../src/lib/password.js";
+import { createSessionToken } from "../../src/lib/session.js";
+import { isCloudinarySecureUrl } from "../../src/lib/upload.js";
+import { featureLockStatusBody, rejectIfFeatureLocked } from "./feature-gate.js";
+import { clearSessionCookie, methodNotAllowed, publicUser, requireSession, setSessionCookie } from "./http.js";
 import {
   addExpense,
   addItineraryItem,
@@ -26,7 +26,7 @@ import {
   redrawPersonalMission,
   selectSeat,
   votePoll
-} from "./repository";
+} from "./repository.js";
 
 export async function loginHandler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res);

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { verifySessionToken, type SessionPayload } from "../../src/lib/session";
-import { getPublicUser } from "./repository";
+import { verifySessionToken, type SessionPayload } from "../../src/lib/session.js";
+import { getPublicUser } from "./repository.js";
 
 export const SESSION_COOKIE = "hp_trip_session";
 

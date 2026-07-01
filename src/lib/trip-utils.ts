@@ -1,4 +1,4 @@
-import type { ItineraryItem, Seat } from "../types";
+import type { ItineraryItem, Seat } from "../types.js";
 
 export type SeatUiStatus = "available" | "occupied" | "mine" | "selected";
 
